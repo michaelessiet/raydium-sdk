@@ -77,16 +77,13 @@ export async function getMultipleAccountsInfo(
     })
     const _batch = chunkArray(batch, 10)
 
-    const unsafeResponse: MultipleAccountsJsonRpcResponse[] = await (
-      await Promise.all(
-        _batch.map(
-          async (i) =>
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            await connection._rpcBatchRequest(i),
-        ),
-      )
-    ).flat()
+    const unsafeResponse: MultipleAccountsJsonRpcResponse[] = await Promise.all(
+      _batch.map((i) =>
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        connection._rpcBatchRequest(i),
+      ),
+    )
     results = unsafeResponse.map((unsafeRes: MultipleAccountsJsonRpcResponse) => {
       if (unsafeRes.error) {
         return logger.throwError('failed to get info for multiple accounts', Logger.errors.RPC_ERROR, {
@@ -344,16 +341,16 @@ export async function simulateTransaction(connection: Connection, transactions: 
       reqData.push(batch.slice(i * itemReqIndex, (i + 1) * itemReqIndex))
     }
 
-    results = await (
-      await Promise.all(
-        reqData.map(async (i) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          const d: any[] = await connection._rpcBatchRequest(i)
-          return d.map((ii) => ii.result.value)
-        }),
-      )
-    ).flat()
+    results = await Promise.all(
+      reqData.map(async (i) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const d: any[] = await connection._rpcBatchRequest(i)
+        return d.map((ii) => {
+          if (ii.result?.value) return ii.result.value
+        })
+      }),
+    )
   } else {
     try {
       results = await Promise.all(
