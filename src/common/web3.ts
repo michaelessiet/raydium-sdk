@@ -258,6 +258,7 @@ export async function simulateMultipleInstruction(
 
   try {
     results = await simulateTransaction(connection, transactions, batchRequest)
+    console.log('results:', results)
     if (results.find((i) => i.err !== null)) throw Error('rpc simulateTransaction error')
   } catch (error) {
     if (error instanceof Error) {
